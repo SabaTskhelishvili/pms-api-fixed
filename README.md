@@ -13,13 +13,6 @@ Set `email` and `password` as Postman collection variables or environment variab
 
 ## Collections
 
-### Import Instructions
-
-| Tool | File | How to Import |
-|------|------|---------------|
-| Postman | `collections/postman_collection.json` | Postman → Import → Upload Files |
-| Insomnia | `collections/insomnia_collection.yaml` | Insomnia → Preferences → Data → Import Data |
-
 ### Round-Trip Experience
 
 Both files were created from scratch in Postman first, then round-tripped through Insomnia:
