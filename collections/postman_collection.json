@@ -1,0 +1,658 @@
+{
+  "info": {
+    "_postman_id": "c8fccf94-58b2-40e8-a7b8-9e9b334c47ef",
+    "name": "Policy Management System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for PMS API - Policy CRUD operations with chained requests and full test coverage."
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://pms.srv1505121.hstgr.cloud/api/v1" },
+    { "key": "email", "value": "tskh@gmail.com" },
+    { "key": "password", "value": "Gangsta56" },
+    { "key": "auth_token", "value": "" },
+    { "key": "created_account_id", "value": "" },
+    { "key": "created_policy_id", "value": "" },
+    { "key": "created_endorsement_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response time < 2 seconds', () => {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.test('Content-Type is application/json', () => {",
+              "    const ct = typeof pm.response.headers.get === 'function'",
+              "        ? pm.response.headers.get('Content-Type')",
+              "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+              "    pm.expect(ct).to.include('application/json');",
+              "});",
+              "",
+              "pm.test('Response has token and user with role', () => {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('token');",
+              "    pm.expect(json.user).to.have.property('role');",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const json = pm.response.json();",
+              "    pm.collectionVariables.set('auth_token', json.token);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "Create Account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', () => {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response time < 2 seconds', () => {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.test('Content-Type is application/json', () => {",
+              "    const ct = typeof pm.response.headers.get === 'function'",
+              "        ? pm.response.headers.get('Content-Type')",
+              "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+              "    pm.expect(ct).to.include('application/json');",
+              "});",
+              "",
+              "pm.test('Response body has data with id and email', () => {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('data');",
+              "    pm.expect(json.data).to.have.property('id');",
+              "    pm.expect(json.data).to.have.property('email');",
+              "});",
+              "",
+              "if (pm.response.code === 201) {",
+              "    const json = pm.response.json();",
+              "    pm.collectionVariables.set('created_account_id', json.data.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account\": {\n    \"first_name\": \"{{$randomFirstName}}\",\n    \"last_name\": \"{{$randomLastName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"phone\": \"{{$randomPhoneNumber}}\",\n    \"address\": {\n      \"address_line1\": \"{{$randomStreet}}\",\n      \"city\": \"{{$randomCity}}\",\n      \"state\": \"{{$randomStateAbbr}}\",\n      \"zip_code\": \"{{$randomZipCode}}\"\n    }\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/accounts",
+          "host": ["{{base_url}}"],
+          "path": ["accounts"]
+        }
+      }
+    },
+    {
+      "name": "Policies",
+      "description": "CRUD operations for the Policy entity. Run Create Policy first to set created_policy_id, then the rest.",
+      "item": [
+        {
+          "name": "Create Policy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', () => {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data with id, policy_number, and status', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "    pm.expect(json.data).to.have.property('id');",
+                  "    pm.expect(json.data).to.have.property('policy_number');",
+                  "    pm.expect(json.data).to.have.property('status');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('created_policy_id', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy\": {\n    \"account_id\": \"{{created_account_id}}\",\n    \"insurance_type\": \"general_liability\",\n    \"status\": \"active\",\n    \"premium\": 120000,\n    \"coverage\": 100000000,\n    \"effective_date\": \"2026-06-01\",\n    \"expiration_date\": \"2027-06-01\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/policies",
+              "host": ["{{base_url}}"],
+              "path": ["policies"]
+            }
+          }
+        },
+        {
+          "name": "Get All Policies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data array and meta pagination', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data').that.is.an('array');",
+                  "    pm.expect(json).to.have.property('meta');",
+                  "    pm.expect(json.meta).to.have.property('current_page');",
+                  "    pm.expect(json.meta).to.have.property('total_count');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/policies",
+              "host": ["{{base_url}}"],
+              "path": ["policies"]
+            }
+          }
+        },
+        {
+          "name": "Get Policy by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data with account and endorsements', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "    pm.expect(json.data).to.have.property('id');",
+                  "    pm.expect(json.data).to.have.property('policy_number');",
+                  "    pm.expect(json.data).to.have.property('account');",
+                  "    pm.expect(json.data).to.have.property('endorsements');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/policies/{{created_policy_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["policies", "{{created_policy_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Policy (full)",
+          "description": "Replaces all policy fields via PATCH (API does not support PUT).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data with updated insurance_type and premium', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "    pm.expect(json.data).to.have.property('id');",
+                  "    pm.expect(json.data.insurance_type).to.eql('professional_liability');",
+                  "    pm.expect(json.data.premium).to.eql(150000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy\": {\n    \"insurance_type\": \"professional_liability\",\n    \"status\": \"active\",\n    \"premium\": 150000,\n    \"coverage\": 200000000,\n    \"effective_date\": \"2026-06-01\",\n    \"expiration_date\": \"2027-06-01\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/policies/{{created_policy_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["policies", "{{created_policy_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Policy (partial)",
+          "description": "Updates only the status field to cancelled via PATCH.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data with status set to cancelled', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "    pm.expect(json.data.status).to.eql('cancelled');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy\": {\n    \"status\": \"cancelled\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/policies/{{created_policy_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["policies", "{{created_policy_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Policy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', () => {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Response body is empty', () => {",
+                  "    pm.expect(pm.response.text()).to.eql('');",
+                  "});",
+                  "",
+                  "pm.test('Response status text is No Content', () => {",
+                  "    pm.expect(pm.response.status).to.eql('No Content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/policies/{{created_policy_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["policies", "{{created_policy_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "description": "Additional read and cleanup operations for the Account entity.",
+      "item": [
+        {
+          "name": "Get All Accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data array with pagination meta', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data').that.is.an('array');",
+                  "    pm.expect(json).to.have.property('meta');",
+                  "    pm.expect(json.meta).to.have.property('current_page');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accounts",
+              "host": ["{{base_url}}"],
+              "path": ["accounts"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "description": "Deletes the account created earlier. Runs last - after Delete Policy - so no dependent policies remain.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', () => {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Response body is empty', () => {",
+                  "    pm.expect(pm.response.text()).to.eql('');",
+                  "});",
+                  "",
+                  "pm.test('Response status text is No Content', () => {",
+                  "    pm.expect(pm.response.status).to.eql('No Content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accounts/{{created_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["accounts", "{{created_account_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Endorsements",
+      "description": "CRUD operations for the Endorsement entity.",
+      "item": [
+        {
+          "name": "Create Endorsement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', () => {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data with id and endorsement_type', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "    pm.expect(json.data).to.have.property('id');",
+                  "    pm.expect(json.data).to.have.property('endorsement_type');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('created_endorsement_id', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"endorsement\": {\n    \"endorsement_type\": \"policy_change\",\n    \"premium\": 5000,\n    \"description\": \"Added additional insured rider.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/policies/{{created_policy_id}}/endorsements",
+              "host": ["{{base_url}}"],
+              "path": ["policies", "{{created_policy_id}}", "endorsements"]
+            }
+          }
+        },
+        {
+          "name": "Get All Endorsements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data array', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data').that.is.an('array');",
+                  "    pm.expect(json).to.have.property('meta');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/policies/{{created_policy_id}}/endorsements",
+              "host": ["{{base_url}}"],
+              "path": ["policies", "{{created_policy_id}}", "endorsements"]
+            }
+          }
+        },
+        {
+          "name": "Delete Endorsement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', () => {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Response body is empty', () => {",
+                  "    pm.expect(pm.response.text()).to.eql('');",
+                  "});",
+                  "",
+                  "pm.test('Response status text is No Content', () => {",
+                  "    pm.expect(pm.response.status).to.eql('No Content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/endorsements/{{created_endorsement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["endorsements", "{{created_endorsement_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

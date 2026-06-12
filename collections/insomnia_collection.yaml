@@ -1,0 +1,776 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Policy Management System API
+meta:
+  id: wrk_fee22302e2b24379b78ba17b5c968583
+  created: 1781239472826
+  modified: 1781239472826
+  description: ""
+collection:
+  - name: Policy Management System API
+    meta:
+      id: fld_5f182186aaf14e1e8a6a62beb40fcd99
+      created: 1781239472831
+      modified: 1781240356083
+      sortKey: -1781239469042
+      description: Postman collection for PMS API — Policy CRUD operations with
+        chained requests and full test coverage.
+    children:
+      - url: "{{base_url}}/auth/login"
+        name: Login
+        meta:
+          id: req_bf7ac41a07e24f0fab7a0ff397c88349
+          created: 1781239472834
+          modified: 1781239472834
+          isPrivate: false
+          description: ""
+          sortKey: -1781239469041
+        method: POST
+        body:
+          mimeType: text/plain
+          text: |-
+            {
+              "email": "{{email}}",
+              "password": "{{password}}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        scripts:
+          afterResponse: >-
+            insomnia.test('Status code is 200', () => {
+                insomnia.response.to.have.status(200);
+            });
+
+
+            insomnia.test('Response time < 2 seconds', () => {
+                insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+            });
+
+
+            insomnia.test('Content-Type is application/json', () => {
+                insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+            });
+
+
+            insomnia.test('Response has token and user with role', () => {
+                const json = insomnia.response.json();
+                insomnia.expect(json).to.have.property('token');
+                insomnia.expect(json.user).to.have.property('role');
+            });
+
+
+            if (insomnia.response.code === 200) {
+                const json = insomnia.response.json();
+                insomnia.collectionVariables.set('auth_token', json.token);
+            }
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{base_url}}/accounts"
+        name: Create Account
+        meta:
+          id: req_b7c633eaee784c4d8c6e76d86b1877d4
+          created: 1781239472838
+          modified: 1781240282288
+          isPrivate: false
+          description: ""
+          sortKey: -1781239469040
+        method: POST
+        body:
+          mimeType: text/plain
+          text: |-
+            {
+              "account": {
+                  "first_name": "{{$randomFirstName}}",
+                  "last_name": "{{$randomLastName}}",
+                  "email": "{{$randomEmail}}",
+                  "phone": "{{$randomPhoneNumber}}",
+                  "address": {
+                    "address_line1": "{{$randomStreet}}",
+                    "city": "{{$randomCity}}",
+                    "state": "{{$randomStateAbbr}}",
+                    "zip_code": "{{$randomZipCode}}"
+                  }
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{auth_token}}
+        authentication:
+          type: bearer
+          disabled: false
+          token: "{{auth_token}}"
+          prefix: ""
+        scripts:
+          afterResponse: >-
+            insomnia.test('Status code is 201', () => {
+                insomnia.response.to.have.status(201);
+            });
+
+
+            insomnia.test('Response time < 2 seconds', () => {
+                insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+            });
+
+
+            insomnia.test('Content-Type is application/json', () => {
+                insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+            });
+
+
+            insomnia.test('Response body has data with id and email', () => {
+                const json = insomnia.response.json();
+                insomnia.expect(json).to.have.property('data');
+                insomnia.expect(json.data).to.have.property('id');
+                insomnia.expect(json.data).to.have.property('email');
+            });
+
+
+            if (insomnia.response.code === 201) {
+                const json = insomnia.response.json();
+                insomnia.collectionVariables.set('created_account_id', json.data.id);
+            }
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - name: Policies
+        meta:
+          id: fld_1639ca3bd03a4d6abac0769074e2a431
+          created: 1781239472841
+          modified: 1781240355580
+          sortKey: -1781239469039
+          description: CRUD operations for the Policy entity. Run Create Policy first to
+            set created_policy_id, then the rest.
+        children:
+          - url: "{{base_url}}/policies"
+            name: Create Policy
+            meta:
+              id: req_8979dcced6e144dd8bc3868b0abb4107
+              created: 1781239472843
+              modified: 1781239472843
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469038
+            method: POST
+            body:
+              mimeType: text/plain
+              text: |-
+                {
+                  "policy": {
+                    "account_id": "{{created_account_id}}",
+                    "insurance_type": "general_liability",
+                    "status": "active",
+                    "premium": 120000,
+                    "coverage": 100000000,
+                    "effective_date": "2026-06-01",
+                    "expiration_date": "2027-06-01"
+                  }
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 201', () => {
+                    insomnia.response.to.have.status(201);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data with id, policy_number,
+                and status', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data');
+                    insomnia.expect(json.data).to.have.property('id');
+                    insomnia.expect(json.data).to.have.property('policy_number');
+                    insomnia.expect(json.data).to.have.property('status');
+                });
+
+
+                if (insomnia.response.code === 201) {
+                    const json = insomnia.response.json();
+                    insomnia.collectionVariables.set('created_policy_id', json.data.id);
+                }
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/policies"
+            name: Get All Policies
+            meta:
+              id: req_8696fd04fb87417093cd092ac2984a83
+              created: 1781239472845
+              modified: 1781239472845
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469037
+            method: GET
+            headers:
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 200', () => {
+                    insomnia.response.to.have.status(200);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data array and meta
+                pagination', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data').that.is.an('array');
+                    insomnia.expect(json).to.have.property('meta');
+                    insomnia.expect(json.meta).to.have.property('current_page');
+                    insomnia.expect(json.meta).to.have.property('total_count');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/policies/{{created_policy_id}}"
+            name: Get Policy by ID
+            meta:
+              id: req_5e12e58e678d41dab61e43f61ca1dafb
+              created: 1781239472848
+              modified: 1781239472848
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469036
+            method: GET
+            headers:
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 200', () => {
+                    insomnia.response.to.have.status(200);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data with account and
+                endorsements', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data');
+                    insomnia.expect(json.data).to.have.property('id');
+                    insomnia.expect(json.data).to.have.property('policy_number');
+                    insomnia.expect(json.data).to.have.property('account');
+                    insomnia.expect(json.data).to.have.property('endorsements');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/policies/{{created_policy_id}}"
+            name: Update Policy (full)
+            meta:
+              id: req_548b10f795864c12ba813f7177925a85
+              created: 1781239472850
+              modified: 1781239472850
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469035
+            method: PATCH
+            body:
+              mimeType: text/plain
+              text: |-
+                {
+                  "policy": {
+                    "insurance_type": "professional_liability",
+                    "status": "active",
+                    "premium": 150000,
+                    "coverage": 200000000,
+                    "effective_date": "2026-06-01",
+                    "expiration_date": "2027-06-01"
+                  }
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 200', () => {
+                    insomnia.response.to.have.status(200);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data with updated
+                insurance_type and premium', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data');
+                    insomnia.expect(json.data).to.have.property('id');
+                    insomnia.expect(json.data.insurance_type).to.eql('professional_liability');
+                    insomnia.expect(json.data.premium).to.eql(150000);
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/policies/{{created_policy_id}}"
+            name: Update Policy (partial)
+            meta:
+              id: req_04221d608fbf433590261e91219dbcbd
+              created: 1781239472854
+              modified: 1781239472854
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469034
+            method: PATCH
+            body:
+              mimeType: text/plain
+              text: |-
+                {
+                  "policy": {
+                    "status": "cancelled"
+                  }
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 200', () => {
+                    insomnia.response.to.have.status(200);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data with status set to
+                cancelled', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data');
+                    insomnia.expect(json.data.status).to.eql('cancelled');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/policies/{{created_policy_id}}"
+            name: Delete Policy
+            meta:
+              id: req_9d903c034bba4ae29a0d3bf33ea33e59
+              created: 1781239472857
+              modified: 1781239472857
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469033
+            method: DELETE
+            headers:
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 204', () => {
+                    insomnia.response.to.have.status(204);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Response body is empty', () => {
+                    insomnia.expect(insomnia.response.text()).to.eql('');
+                });
+
+
+                insomnia.test('Response status text is No Content', () => {
+                    insomnia.expect(insomnia.response.status).to.eql('No Content');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Accounts
+        meta:
+          id: fld_b02ecb022ca749c4aa658182724ae66d
+          created: 1781239472859
+          modified: 1781240356084
+          sortKey: -1781239469032
+          description: Additional read and cleanup operations for the Account entity.
+        children:
+          - url: "{{base_url}}/accounts"
+            name: Get All Accounts
+            meta:
+              id: req_924fc24f171f4758b0f992f9b6bc0616
+              created: 1781239472860
+              modified: 1781239472860
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469031
+            method: GET
+            headers:
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 200', () => {
+                    insomnia.response.to.have.status(200);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data array with pagination
+                meta', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data').that.is.an('array');
+                    insomnia.expect(json).to.have.property('meta');
+                    insomnia.expect(json.meta).to.have.property('current_page');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/accounts/{{created_account_id}}"
+            name: Delete Account
+            meta:
+              id: req_26bcda90e3ea46f18ac78ce216f51739
+              created: 1781239472862
+              modified: 1781239472862
+              isPrivate: false
+              description: ""
+              sortKey: -1781239469030
+            method: DELETE
+            headers:
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 204', () => {
+                    insomnia.response.to.have.status(204);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Response body is empty', () => {
+                    insomnia.expect(insomnia.response.text()).to.eql('');
+                });
+
+
+                insomnia.test('Response status text is No Content', () => {
+                    insomnia.expect(insomnia.response.status).to.eql('No Content');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Endorsements
+        meta:
+          id: fld_6e744c3e6f6242e1b021fa0e3f919aa5
+          created: 1781239605924
+          modified: 1781239959555
+          sortKey: -1781239469039.5
+          description: ""
+        children:
+          - url: "{{base_url}}/policies/{{created_policy_id}}/endorsements"
+            name: Create Endorsement
+            meta:
+              id: req_8f16d40307be438184a0ef6f4d9c9adc
+              created: 1781239627583
+              modified: 1781239970571
+              isPrivate: false
+              description: ""
+              sortKey: -1781239853815
+            method: POST
+            body:
+              mimeType: application/json
+              text: '{"endorsement":{"endorsement_type":"policy_change","premium":5000}}'
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 201', () => {
+                    insomnia.response.to.have.status(201);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data with id and endorsement_type', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data');
+                    insomnia.expect(json.data).to.have.property('id');
+                    insomnia.expect(json.data).to.have.property('endorsement_type');
+                });
+
+
+                if (insomnia.response.code === 201) {
+                    const json = insomnia.response.json();
+                    insomnia.collectionVariables.set('created_endorsement_id', json.data.id);
+                }
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/policies/{{created_policy_id}}/endorsements"
+            name: Get All Endorsements
+            meta:
+              id: req_97c7851a6c8d4c36bfa3b87744259f8f
+              created: 1781239795778
+              modified: 1781239972486
+              isPrivate: false
+              description: ""
+              sortKey: -1781239853765
+            method: GET
+            headers:
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 200', () => {
+                    insomnia.response.to.have.status(200);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data array', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data').that.is.an('array');
+                    insomnia.expect(json).to.have.property('meta');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/endorsements/{{created_endorsement_id}}"
+            name: Delete Endorsement
+            meta:
+              id: req_04faa7c3f5d84e00be7eb4dc4b501473
+              created: 1781239853715
+              modified: 1781239908601
+              isPrivate: false
+              description: ""
+              sortKey: -1781239853715
+            method: DELETE
+            headers:
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 204', () => {
+                    insomnia.response.to.have.status(204);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Response body is empty', () => {
+                    insomnia.expect(insomnia.response.text()).to.eql('');
+                });
+
+
+                insomnia.test('Response status text is No Content', () => {
+                    insomnia.expect(insomnia.response.status).to.eql('No Content');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_b5aaa6cd00546e3f19e2bf1bb40413a7e833fffb
+    created: 1781239473159
+    modified: 1781240356080
+environments:
+  name: Variables
+  meta:
+    id: env_e5bcb9f267bc486ba01f71ea605603f0
+    created: 1781239472864
+    modified: 1781240356082
+    isPrivate: false
+  data:
+    base_url: https://pms.srv1505121.hstgr.cloud/api/v1
+    email: tskh@gmail.com
+    password: Gangsta56
+    auth_token: ""
+    created_account_id: ""
+    created_policy_id: ""
+    created_endorsement_id: ""
