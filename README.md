@@ -25,7 +25,7 @@ Set `email` and `password` as Postman collection variables or environment variab
 Both files were created from scratch in Postman first, then round-tripped through Insomnia:
 
 1. **Postman → Insomnia**: Imported `postman_collection.json` into Insomnia — tests, variables, and chaining all carried over intact.
-2. **Insomnia → Postman**: Exported from Insomnia as Postman v2.1 JSON — the export was **incomplete**: all request bodies were merged into a single line, tests were dropped entirely, and some variable references broke.
+2. **Insomnia → Postman**: Tried exporting from Insomnia in Postman v2.1 format — the result was **not valid Postman v2.1**: all request bodies were merged into a single line, tests were dropped entirely, and some variable references broke. The round-trip did not produce a usable Postman JSON.
 3. **Final state**: Both files are maintained independently, matching exactly in request names, methods, bodies, headers, and test assertions. The Postman JSON is the authoritative source.
 
 ### Variables
