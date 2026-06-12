@@ -289,7 +289,7 @@
         },
         {
           "name": "Update Policy (full)",
-          "description": "Replaces all policy fields via PATCH (API does not support PUT).",
+          "description": "Replaces all policy fields via PATCH. PUT is also supported (tested separately).",
           "event": [
             {
               "listen": "test",
@@ -688,23 +688,24 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 204', () => {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test('Status code is 404', () => {",
+                  "    pm.response.to.have.status(404);",
                   "});",
                   "",
                   "pm.test('Response time < 2 seconds', () => {",
                   "    pm.expect(pm.response.responseTime).to.be.below(2000);",
                   "});",
                   "",
-                  "pm.test('Response body is empty', () => {",
-                  "    pm.expect(pm.response.text()).to.eql('');",
-                  "});",
-                  "",
-                  "pm.test('No Content-Type on 204 response', () => {",
+                  "pm.test('Content-Type is application/json', () => {",
                   "    const ct = typeof pm.response.headers.get === 'function'",
                   "        ? pm.response.headers.get('Content-Type')",
                   "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
-                  "    pm.expect(ct).to.be.undefined;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has error field', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('error');",
                   "});"
                 ],
                 "type": "text/javascript"

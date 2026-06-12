@@ -20,6 +20,7 @@ Both files were created from scratch in Postman first, then round-tripped throug
 1. **Postman → Insomnia**: Imported `postman_collection.json` into Insomnia — tests, variables, and chaining carried over. Then added **3 more endpoints** manually in Insomnia that weren't in the original Postman collection.
 2. **Insomnia → Postman**: Exported from Insomnia in Postman v2.1 format — the result was usable but **incomplete**: all request bodies were merged into a single line, tests were dropped entirely, and some variable references broke. Had to manually re-add tests, fix body formatting, and restore variables.
 3. **Final state**: Both files are maintained independently, matching exactly in request names, methods, bodies, headers, and test assertions. The Postman JSON is the authoritative source.
+4. **Folder structure difference**: In Postman, Accounts and Endorsements are sibling folders to Policies. In Insomnia, they are nested under Policies (Insomnia's import reorganized them). Requests and content are identical otherwise.
 
 ### Variables
 
