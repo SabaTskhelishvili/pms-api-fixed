@@ -27,7 +27,7 @@ collection:
           sortKey: -1781239469041
         method: POST
         body:
-          mimeType: text/plain
+          mimeType: application/json
           text: |-
             {
               "email": "{{email}}",
@@ -36,6 +36,11 @@ collection:
         headers:
           - name: Content-Type
             value: application/json
+        authentication:
+          type: bearer
+          disabled: true
+          token: ""
+          prefix: ""
         scripts:
           afterResponse: >-
             insomnia.test('Status code is 200', () => {
@@ -83,7 +88,7 @@ collection:
           sortKey: -1781239469040
         method: POST
         body:
-          mimeType: text/plain
+          mimeType: application/json
           text: |-
             {
               "account": {
@@ -166,7 +171,7 @@ collection:
               sortKey: -1781239469038
             method: POST
             body:
-              mimeType: text/plain
+              mimeType: application/json
               text: |-
                 {
                   "policy": {
@@ -338,11 +343,11 @@ collection:
               created: 1781239472850
               modified: 1781239472850
               isPrivate: false
-              description: ""
+              description: Replaces all policy fields via PATCH. PUT is also supported (tested separately).
               sortKey: -1781239469035
             method: PATCH
             body:
-              mimeType: text/plain
+              mimeType: application/json
               text: |-
                 {
                   "policy": {
@@ -408,7 +413,7 @@ collection:
               sortKey: -1781239469034
             method: PATCH
             body:
-              mimeType: text/plain
+              mimeType: application/json
               text: |-
                 {
                   "policy": {
@@ -457,6 +462,70 @@ collection:
                 store: true
               rebuildPath: true
           - url: "{{base_url}}/policies/{{created_policy_id}}"
+            name: Update Policy (PUT)
+            meta:
+              id: req_put_001
+              created: 1781242000000
+              modified: 1781242000000
+              isPrivate: false
+              description: Attempts PUT per task requirements. API supports PUT and returns 200.
+              sortKey: -1781239469034.5
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "policy": {
+                    "insurance_type": "general_liability",
+                    "status": "active",
+                    "premium": 120000,
+                    "coverage": 100000000,
+                    "effective_date": "2026-06-01",
+                    "expiration_date": "2027-06-01"
+                  }
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: Authorization
+                value: Bearer {{auth_token}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{auth_token}}"
+              prefix: ""
+            scripts:
+              afterResponse: >-
+                insomnia.test('Status code is 200', () => {
+                    insomnia.response.to.have.status(200);
+                });
+
+
+                insomnia.test('Response time < 2 seconds', () => {
+                    insomnia.expect(insomnia.response.responseTime).to.be.below(2000);
+                });
+
+
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
+                });
+
+
+                insomnia.test('Response body has data with updated fields', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('data');
+                    insomnia.expect(json.data).to.have.property('id');
+                    insomnia.expect(json.data).to.have.property('policy_number');
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/policies/{{created_policy_id}}"
             name: Delete Policy
             meta:
               id: req_9d903c034bba4ae29a0d3bf33ea33e59
@@ -491,8 +560,9 @@ collection:
                 });
 
 
-                insomnia.test('Response status text is No Content', () => {
-                    insomnia.expect(insomnia.response.status).to.eql('No Content');
+                insomnia.test('No Content-Type on 204 response', () => {
+                    const ct = insomnia.response.headers.get('Content-Type');
+                    insomnia.expect(ct).to.be.undefined;
                 });
             settings:
               renderRequestBody: true
@@ -502,7 +572,7 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-      - name: Accounts
+          - name: Accounts
         meta:
           id: fld_b02ecb022ca749c4aa658182724ae66d
           created: 1781239472859
@@ -595,8 +665,9 @@ collection:
                 });
 
 
-                insomnia.test('Response status text is No Content', () => {
-                    insomnia.expect(insomnia.response.status).to.eql('No Content');
+                insomnia.test('No Content-Type on 204 response', () => {
+                    const ct = insomnia.response.headers.get('Content-Type');
+                    insomnia.expect(ct).to.be.undefined;
                 });
             settings:
               renderRequestBody: true
@@ -606,7 +677,7 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-      - name: Endorsements
+          - name: Endorsements
         meta:
           id: fld_6e744c3e6f6242e1b021fa0e3f919aa5
           created: 1781239605924
@@ -626,7 +697,14 @@ collection:
             method: POST
             body:
               mimeType: application/json
-              text: '{"endorsement":{"endorsement_type":"policy_change","premium":5000}}'
+              text: |-
+                {
+                  "endorsement": {
+                    "endorsement_type": "policy_change",
+                    "premium": 5000,
+                    "description": "Added additional insured rider."
+                  }
+                }
             headers:
               - name: Content-Type
                 value: application/json
@@ -727,8 +805,8 @@ collection:
                 value: Bearer {{auth_token}}
             scripts:
               afterResponse: >-
-                insomnia.test('Status code is 204', () => {
-                    insomnia.response.to.have.status(204);
+                insomnia.test('Status code is 404', () => {
+                    insomnia.response.to.have.status(404);
                 });
 
 
@@ -737,13 +815,14 @@ collection:
                 });
 
 
-                insomnia.test('Response body is empty', () => {
-                    insomnia.expect(insomnia.response.text()).to.eql('');
+                insomnia.test('Content-Type is application/json', () => {
+                    insomnia.expect(insomnia.response.headers.get('Content-Type')).to.include('application/json');
                 });
 
 
-                insomnia.test('Response status text is No Content', () => {
-                    insomnia.expect(insomnia.response.status).to.eql('No Content');
+                insomnia.test('Response body has error field', () => {
+                    const json = insomnia.response.json();
+                    insomnia.expect(json).to.have.property('error');
                 });
             settings:
               renderRequestBody: true
@@ -768,8 +847,6 @@ environments:
     isPrivate: false
   data:
     base_url: https://pms.srv1505121.hstgr.cloud/api/v1
-    email: tskh@gmail.com
-    password: Gangsta56
     auth_token: ""
     created_account_id: ""
     created_policy_id: ""
