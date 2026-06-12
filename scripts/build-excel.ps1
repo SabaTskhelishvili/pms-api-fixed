@@ -81,11 +81,12 @@ $s1d = @(
     @("4", "/policies", "GET", "Retrieve all policies (list)", "Status 200, response has `data` array, `meta.total_count` exists, response time <2s"),
     @("5", "/policies/:id", "GET", "Retrieve a single policy by ID", "Status 200, response has `data.id` matching requested ID, `data.status` field, response time <2s"),
     @("6", "/policies/:id", "PATCH", "Fully update a policy (all fields)", "Status 200, updated fields reflect new values, `data.insurance_type` changed, response time <2s"),
-    @("7", "/policies/:id", "PATCH", "Partially update a policy (single field)", "Status 200, only changed field is updated, `data.status` changed to `cancelled`, response time <2s"),
-    @("8", "/policies/:policy_id/endorsements", "POST", "Create an endorsement on a policy", "Status 201, response has `data.id`, `data.endorsement_type` field, response time <2s"),
-    @("9", "/policies/:policy_id/endorsements", "GET", "Retrieve all endorsements for a policy", "Status 200, response has `data` array, each endorsement has `id` field, response time <2s"),
-    @("10", "/policies/:id", "DELETE", "Delete a policy", "Status 204, no response body, response time <2s"),
-    @("11", "/accounts/:id", "DELETE", "Delete an account", "Status 204, no response body, response time <2s")
+    @("7", "/policies/:id", "PUT", "Full replacement via PUT (task requirement)", "Status 200, response has `data.id` and `data.policy_number`, response time <2s"),
+    @("8", "/policies/:id", "PATCH", "Partially update a policy (single field)", "Status 200, only changed field is updated, `data.status` changed to `cancelled`, response time <2s"),
+    @("9", "/policies/:policy_id/endorsements", "POST", "Create an endorsement on a policy", "Status 201, response has `data.id`, `data.endorsement_type` field, response time <2s"),
+    @("10", "/policies/:policy_id/endorsements", "GET", "Retrieve all endorsements for a policy", "Status 200, response has `data` array, each endorsement has `id` field, response time <2s"),
+    @("11", "/policies/:id", "DELETE", "Delete a policy", "Status 204, no response body, response time <2s"),
+    @("12", "/accounts/:id", "DELETE", "Delete an account", "Status 204, no response body, response time <2s")
 )
 $s1widths = @(8, 30, 10, 50, 60)
 $s1xml = MakeSheet $s1h $s1d $s1widths

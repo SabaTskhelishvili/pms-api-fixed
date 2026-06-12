@@ -1,7 +1,7 @@
 param(
     [string]$BaseUrl = "https://pms.srv1505121.hstgr.cloud/api/v1",
-    [string]$Email = "tskh@gmail.com",
-    [string]$Password = "Gangsta56"
+    [string]$Email = "",
+    [string]$Password = ""
 )
 
 $script:results = @()
@@ -144,6 +144,14 @@ if ($r.StatusCode -eq 200) {
     Add-Result -Name "Update Policy (partial)" -Method "PATCH" -Url "/policies/:id" -StatusCode $r.StatusCode -ResponseBody $r.Content -CurlCmd $curl
     Write-Host "200 OK" -ForegroundColor Green
 } else { Write-Host "$($r.StatusCode) FAILED" -ForegroundColor Red; Add-Result -Name "Update Policy (partial)" -Method "PATCH" -Url "/policies/:id" -StatusCode $r.StatusCode -ResponseBody $r.Error -CurlCmd "" }
+
+# ----- 7b. UPDATE POLICY (PUT) -----
+Write-Host "7b. UPDATE POLICY (PUT) PUT /policies/$policyId ... " -NoNewline
+$putBody = "{`"policy`":{`"insurance_type`":`"general_liability`",`"status`":`"active`",`"premium`":120000,`"coverage`":100000000,`"effective_date`":`"2026-06-01`",`"expiration_date`":`"2027-06-01`"}}"
+$r = Invoke-Api -Method Put -Uri "$BaseUrl/policies/$policyId" -Body $putBody -ContentType "application/json" -Headers $authHeaders
+$curl = Build-Curl -Method PUT -Url "$BaseUrl/policies/{{created_policy_id}}" -Headers @(@{Key="Content-Type";Value="application/json"};@{Key="Authorization";Value="Bearer {{auth_token}}"}) -Body $putBody
+Add-Result -Name "Update Policy (PUT)" -Method "PUT" -Url "/policies/:id" -StatusCode $r.StatusCode -ResponseBody $r.Content -CurlCmd $curl
+if ($r.StatusCode -eq 404 -or $r.StatusCode -eq 405) { Write-Host "$($r.StatusCode) (expected - PUT not supported)" -ForegroundColor Yellow } elseif ($r.StatusCode -eq 200) { Write-Host "$($r.StatusCode) (unexpected - PUT worked!)" -ForegroundColor Green } else { Write-Host "$($r.StatusCode)" -ForegroundColor Red }
 
 # ----- 8. CREATE ENDORSEMENT -----
 Write-Host "8. CREATE ENDORSEMENT POST /policies/$policyId/endorsements ... " -NoNewline

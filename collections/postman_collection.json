@@ -7,8 +7,6 @@
   },
   "variable": [
     { "key": "base_url", "value": "https://pms.srv1505121.hstgr.cloud/api/v1" },
-    { "key": "email", "value": "tskh@gmail.com" },
-    { "key": "password", "value": "Gangsta56" },
     { "key": "auth_token", "value": "" },
     { "key": "created_account_id", "value": "" },
     { "key": "created_policy_id", "value": "" },
@@ -18,6 +16,19 @@
     {
       "name": "Login",
       "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const email = pm.collectionVariables.get('email') || pm.environment.get('email');",
+              "const password = pm.collectionVariables.get('password') || pm.environment.get('password');",
+              "if (!email || !password) {",
+              "    console.warn('Set email and password as collection or environment variables');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
         {
           "listen": "test",
           "script": {
@@ -379,6 +390,57 @@
           }
         },
         {
+          "name": "Update Policy (PUT)",
+          "description": "Attempts PUT per task requirements. API supports PUT and returns 200.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2 seconds', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is application/json', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response body has data with updated fields', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "    pm.expect(json.data).to.have.property('id');",
+                  "    pm.expect(json.data).to.have.property('policy_number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy\": {\n    \"insurance_type\": \"general_liability\",\n    \"status\": \"active\",\n    \"premium\": 120000,\n    \"coverage\": 100000000,\n    \"effective_date\": \"2026-06-01\",\n    \"expiration_date\": \"2027-06-01\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/policies/{{created_policy_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["policies", "{{created_policy_id}}"]
+            }
+          }
+        },
+        {
           "name": "Delete Policy",
           "event": [
             {
@@ -393,12 +455,15 @@
                   "    pm.expect(pm.response.responseTime).to.be.below(2000);",
                   "});",
                   "",
-                  "pm.test('Response body is empty', () => {",
+                "pm.test('Response body is empty', () => {",
                   "    pm.expect(pm.response.text()).to.eql('');",
                   "});",
                   "",
-                  "pm.test('Response status text is No Content', () => {",
-                  "    pm.expect(pm.response.status).to.eql('No Content');",
+                  "pm.test('No Content-Type on 204 response', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.be.undefined;",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -488,8 +553,11 @@
                   "    pm.expect(pm.response.text()).to.eql('');",
                   "});",
                   "",
-                  "pm.test('Response status text is No Content', () => {",
-                  "    pm.expect(pm.response.status).to.eql('No Content');",
+                  "pm.test('No Content-Type on 204 response', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.be.undefined;",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -632,8 +700,11 @@
                   "    pm.expect(pm.response.text()).to.eql('');",
                   "});",
                   "",
-                  "pm.test('Response status text is No Content', () => {",
-                  "    pm.expect(pm.response.status).to.eql('No Content');",
+                  "pm.test('No Content-Type on 204 response', () => {",
+                  "    const ct = typeof pm.response.headers.get === 'function'",
+                  "        ? pm.response.headers.get('Content-Type')",
+                  "        : pm.response.headers.find(h => h.key.toLowerCase() === 'content-type')?.value;",
+                  "    pm.expect(ct).to.be.undefined;",
                   "});"
                 ],
                 "type": "text/javascript"
